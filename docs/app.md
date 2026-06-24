@@ -59,9 +59,9 @@ app/
 ### API
 
 ```sh
-cd app/demo-api 
+cd app/demo-api
 
-go mod init demo-api 
+go mod init demo-api
 go get github.com/gin-gonic/gin
 go mod tidy
 
@@ -82,7 +82,7 @@ curl http://localhost:8080/healthz
 
 ```sh
 cd app
-docker compose up -d --build 
+docker compose up -d --build
 
 curl http://localhost:8081/api/
 # {"app":"k8s-multi-cloud","cloud_provider":"aws","version":"0.1.0"}
@@ -93,14 +93,13 @@ curl http://localhost:8082/api/
 curl http://localhost:8081/healthz
 # ok
 
-# Teardown when done: 
+# Teardown when done:
 docker compose down -v
 ```
 
 ---
 
 ## Docker push
-
 
 ```sh
 cd app
@@ -109,19 +108,21 @@ cd app
 docker login
 
 # 2. build with the target tag
-docker build -t simonangelfong/muticloud-demo-api:0.1.0 .
+docker build -t simonangelfong/multicloud-demo-api:0.1.0 .
 
 # 3. (optional) also tag as latest
-docker tag simonangelfong/muticloud-demo-api:0.1.0 simonangelfong/muticloud-demo-api:latest
+docker tag simonangelfong/multicloud-demo-api:0.1.0 simonangelfong/multicloud-demo-api:latest
 
 # 4. push
-docker push simonangelfong/muticloud-demo-api:0.1.0
-docker push simonangelfong/muticloud-demo-api:latest
+docker push simonangelfong/multicloud-demo-api:0.1.0
+docker push simonangelfong/multicloud-demo-api:latest
 
 # test
-docker run -d --rm -p 8080:8080 -e VERSION=0.1.0 -e CLOUD_PROVIDER=aws simonangelfong/muticloud-demo-api:0.1.0
+docker run -d --name multicloud-demo-api --rm -p 8080:8080 -e VERSION=0.1.0 -e CLOUD_PROVIDER=aws simonangelfong/multicloud-demo-api:0.1.0
 # then in another terminal:
 curl http://localhost:8080/api/
 # {"app":"k8s-multi-cloud","cloud_provider":"aws","version":"0.1.0"}
 
+docker stop multicloud-demo-api
+docker rm multicloud-demo-api
 ```

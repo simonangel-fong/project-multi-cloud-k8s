@@ -1,0 +1,38 @@
+replicaCount: 2
+
+image:
+  repository: simonangelfong/multicloud-demo-api
+  tag: "0.1.0"
+  pullPolicy: IfNotPresent
+
+containerPort: 8080
+
+service:
+  type: ClusterIP
+  port: 80
+
+env:
+  VERSION: "0.1.0"
+  CLOUD_PROVIDER: "local"
+
+probes:
+  path: /healthz
+  initialDelaySeconds: 3
+  periodSeconds: 10
+
+hpa:
+  enabled: false
+  minReplicas: 2
+  maxReplicas: 10
+  targetCPUUtilizationPercentage: 40
+  stabilizationWindowSeconds: 60
+
+httpRoute:
+  enabled: false
+  gatewayName: cilium-gateway
+  gatewayNamespace: gateway
+  hostname: cloud.arguswatcher.net
+  path: /api/
+
+nameOverride: ""
+fullnameOverride: ""
