@@ -1,8 +1,5 @@
 # k8s-multi-cloud
 
-- [ ] eks
-  - [ ] cilium
-  - [ ] node
 - [ ] app
   - [ ] golang
   - [ ] docker image

@@ -1,0 +1,16 @@
+services:
+  aws:
+    build: .
+    environment:
+      VERSION: "0.1.0"
+      CLOUD_PROVIDER: "aws"
+    ports:
+      - "8081:8080"
+
+  azure:
+    build: .
+    environment:
+      VERSION: "1.0.0"
+      CLOUD_PROVIDER: "azure"
+    ports:
+      - "8082:8080"
