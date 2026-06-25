@@ -1,15 +1,26 @@
 # main.tf
 
 # ##############################
+# Resource Group
+# ##############################
+resource "azurerm_resource_group" "main" {
+  name     = local.common_name
+  location = var.az_location
+  tags     = local.tags
+}
+
+# ##############################
 # AKS
 # ##############################
 module "aks" {
-  source = "../../modules/az/aks"
+  source = "../modules/az/aks"
 
-  # rg
+  # ####################
+  # Resource Group
+  # ####################
   rg_name     = azurerm_resource_group.main.name
   rg_location = azurerm_resource_group.main.location
-  tags        = local.default_tags
+  tags        = local.tags
 
   # ####################
   # Networking

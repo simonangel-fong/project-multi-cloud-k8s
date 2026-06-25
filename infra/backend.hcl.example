@@ -1,0 +1,6 @@
+bucket          = "your-tfstate-bucket-name"
+key             = "your-key"
+region          = "your-region"
+use_lockfile    = true
+encrypt         = true
+

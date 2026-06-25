@@ -6,17 +6,25 @@ locals {
   common_name = "${var.project_name}-${var.env}"
 
   # ##############################
-  # Azure
+  # AWS
   # ##############################
-  default_tags = {
+  tags = {
     Project     = var.project_name
     Environment = var.env
     ManagedBy   = "terraform"
   }
 
+  # ##############################
+  # Networking
+  # ##############################
+  # VPC
+  vpc_cidr = "10.0.0.0/16"
   # VNet
   vnet_cidr = "10.10.0.0/16"
 
-  # AKS
+  # ##############################
+  # Cluster
+  # ##############################
   cluster_version = "1.36"
 }
+

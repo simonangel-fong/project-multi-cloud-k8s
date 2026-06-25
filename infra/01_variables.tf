@@ -22,3 +22,9 @@ variable "aws_region" {
   type = string
 }
 
+# ##############################
+# Azure
+# ##############################
+variable "az_location" {
+  type = string
+}

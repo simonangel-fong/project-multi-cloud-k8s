@@ -1,0 +1,3 @@
+aws_region  = "aws_region"
+az_location = "az_location"
+env         = "env_name"

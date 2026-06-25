@@ -172,6 +172,16 @@ curl -H "Host: cloud.arguswatcher.net" "http://${GATEWAY_ADDR}/api/"
 #### AKS
 
 ```sh
+# 1. Pull AKS credentials into kubeconfig
+az aks get-credentials --resource-group multi-cloud-k8s-dev --name multi-cloud-k8s-dev --overwrite-existing
+
+# 2. Register the AKS context with ArgoCD
+argocd cluster add multi-cloud-k8s-dev --name multi-cloud-k8s-dev
+
+# 3. Label so the ApplicationSet picks it up
+kubectl -n argocd label secret cluster-<server-hash> cloud=azure workload=demo-api
+
+
 # Add AKS later
 argocd cluster add <aks-kubectx> --name aks-prod
 # 3) label the new cluster Secret so the generator picks it up:

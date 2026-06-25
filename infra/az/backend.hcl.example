@@ -1,5 +1,0 @@
-bucket  = "your-tfstate-bucket-name"
-key     = "k8s-multi-cloud/az/terraform.tfstate"
-region  = "your-region"
-use_lockfile = true
-encrypt      = true

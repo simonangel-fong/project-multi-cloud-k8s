@@ -1,8 +1,10 @@
+## Provision Infra
+
 ```sh
-terraform -chdir=infra/aws init -backend-config=backend.hcl -reconfigure
-terraform -chdir=infra/aws fmt && terraform -chdir=infra/aws validate
-terraform -chdir=infra/aws plan
-terraform -chdir=infra/aws apply -auto-approve
+terraform -chdir=infra/ init -backend-config=backend.hcl -reconfigure
+terraform -chdir=infra/ fmt && terraform -chdir=infra/aws validate
+terraform -chdir=infra/ plan
+terraform -chdir=infra/ apply -auto-approve
 
 terraform -chdir=infra/aws destroy -auto-approve
 

@@ -11,6 +11,10 @@ terraform {
       source  = "hashicorp/aws"
       version = "~> 5.0"
     }
+    azurerm = {
+      source  = "hashicorp/azurerm"
+      version = "~> 4.0"
+    }
     null = {
       source  = "hashicorp/null"
       version = "~> 3.2"
@@ -42,6 +46,11 @@ provider "aws" {
   default_tags {
     tags = local.tags
   }
+}
+
+# Azure
+provider "azurerm" {
+  features {}
 }
 
 # EKS auth
