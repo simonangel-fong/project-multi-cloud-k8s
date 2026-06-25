@@ -48,7 +48,7 @@ resource "kubernetes_cluster_role_binding" "argocd_manager" {
 resource "kubernetes_secret" "aks_cluster" {
   provider = kubernetes.eks
   metadata {
-    name      = "aks-prod"
+    name      = "aks-cluster"
     namespace = "argocd"
     labels = {
       "argocd.argoproj.io/secret-type" = "cluster"
@@ -58,7 +58,7 @@ resource "kubernetes_secret" "aks_cluster" {
   }
 
   data = {
-    name   = "aks-prod"
+    name   = "aks-cluster"
     server = module.aks.cluster_endpoint
     config = jsonencode({
       bearerToken     = kubernetes_secret.argocd_manager_token.data["token"]

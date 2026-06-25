@@ -7,8 +7,6 @@ terraform -chdir=infra/multi-cloud-kube plan
 terraform -chdir=infra/multi-cloud-kube apply -auto-approve
 
 terraform -chdir=infra/aws destroy -auto-approve
-
-
 ```
 
 ---
@@ -61,7 +59,6 @@ argocd login localhost:8081 --username admin   --insecure
 argocd cluster add multi-cloud-k8s-dev --name aks-dev --label cloud=azure --label workload=demo-api -y
 
 argocd cluster list
-
 
 kubectl apply -f argocd/00-root.yaml
 ```
