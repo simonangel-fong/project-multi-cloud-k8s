@@ -14,7 +14,7 @@ spec:
             workload: demo-api
   template:
     metadata:
-      name: 'envoy-gateway-config-{{ .name }}'
+      name: '{{ .name }}-02-envoy-gateway-config'
     spec:
       project: default
       source:

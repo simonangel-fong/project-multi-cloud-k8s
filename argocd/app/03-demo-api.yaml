@@ -14,7 +14,7 @@ spec:
             workload: demo-api
   template:
     metadata:
-      name: 'demo-api-{{ .name }}'
+       name: '{{ .name }}-03-demo-api'
     spec:
       project: default
       source:
