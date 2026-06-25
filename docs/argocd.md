@@ -179,6 +179,16 @@ kubectl -n argocd label secret aks-prod cloud=azure workload=demo-api
 # ApplicationSet auto-creates demo-api-aks-prod; cloud_provider returns "azure".
 ```
 
+### Test APP
+
+```sh
+GATEWAY_ADDR=$(kubectl get gateway eg -n envoy-gateway-system -o jsonpath='{.status.addresses[0].value}')
+echo $GATEWAY_ADDR
+'20.48.140.60'
+curl -H "Host: cloud.arguswatcher.net" "http://20.48.140.60/api/"
+# {"app":"k8s-multi-cloud","cloud_provider":"azure","version":"0.1.0"}
+```
+
 ---
 
 ## Runbook

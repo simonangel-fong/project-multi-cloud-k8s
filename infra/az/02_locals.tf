@@ -8,7 +8,7 @@ locals {
   # ##############################
   # Azure
   # ##############################
-  tags = {
+  default_tags = {
     Project     = var.project_name
     Environment = var.env
     ManagedBy   = "terraform"

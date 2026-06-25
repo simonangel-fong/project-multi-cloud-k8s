@@ -1,14 +1,15 @@
-# main.tf
+# # main.tf
 
 # ##############################
 # AKS Cluster
 # ##############################
 resource "azurerm_kubernetes_cluster" "this" {
-  name                = var.cluster_name
+  name                = local.common_name
   location            = var.rg_location
   resource_group_name = var.rg_name
-  dns_prefix          = var.cluster_name
-  kubernetes_version  = var.cluster_version
+
+  kubernetes_version = var.cluster_version
+
 
   # ####################
   # identity
@@ -16,6 +17,8 @@ resource "azurerm_kubernetes_cluster" "this" {
   identity {
     type = "SystemAssigned"
   }
+  oidc_issuer_enabled       = true
+  workload_identity_enabled = true
 
   # ####################
   # default (system) node pool
@@ -27,25 +30,20 @@ resource "azurerm_kubernetes_cluster" "this" {
     auto_scaling_enabled = var.default_node_pool.auto_scaling
     min_count            = var.default_node_pool.auto_scaling ? var.default_node_pool.min_count : null
     max_count            = var.default_node_pool.auto_scaling ? var.default_node_pool.max_count : null
-    vnet_subnet_id       = var.subnet_id
+    vnet_subnet_id       = azurerm_subnet.this.id
   }
 
   # ####################
   # networking
   # ####################
+  dns_prefix = local.common_name
   network_profile {
-    network_plugin = "azure"
+    network_plugin    = "azure"
     load_balancer_sku = "standard"
   }
 
-  # ####################
-  # workload identity / OIDC
-  # ####################
-  oidc_issuer_enabled       = true
-  workload_identity_enabled = true
-
   tags = merge(
-    var.cluster_tags,
-    { Name = var.cluster_name }
+    var.tags,
+    { Name = local.common_name }
   )
 }

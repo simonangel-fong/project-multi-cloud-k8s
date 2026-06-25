@@ -1,17 +1,10 @@
 # variables.tf
 
-variable "cluster_name" {
-  description = "Name of the AKS cluster"
-  type        = string
-}
-
-variable "cluster_version" {
-  description = "Kubernetes version for the AKS cluster"
-  type        = string
-}
-
+# ##############################
+# Resource Group
+# ##############################
 variable "rg_name" {
-  description = "Resource group hosting the cluster"
+  description = "Resource group hosting the VNet"
   type        = string
 }
 
@@ -20,8 +13,26 @@ variable "rg_location" {
   type        = string
 }
 
-variable "subnet_id" {
-  description = "Subnet ID where AKS nodes will be placed"
+variable "tags" {
+  description = "Tags applied to all resources"
+  type        = map(string)
+  default     = {}
+}
+
+# ##############################
+# Networking
+# ##############################
+variable "vnet_cidr" {
+  description = "CIDR block for the VNet"
+  type        = string
+  default     = "10.10.0.0/16"
+}
+
+# ##############################
+# AKS
+# ##############################
+variable "cluster_version" {
+  description = "Kubernetes version for the AKS cluster"
   type        = string
 }
 
@@ -44,10 +55,4 @@ variable "default_node_pool" {
     max_count    = 3
     auto_scaling = true
   }
-}
-
-variable "cluster_tags" {
-  description = "Tags applied to all AKS resources"
-  type        = map(string)
-  default     = {}
 }

@@ -40,20 +40,20 @@ provider "azurerm" {
   features {}
 }
 
-# kubernetes
-provider "kubernetes" {
-  host                   = module.aks.cluster_endpoint
-  cluster_ca_certificate = base64decode(module.aks.cluster_ca_certificate)
-  client_certificate     = base64decode(yamldecode(module.aks.kube_config_raw).users[0].user["client-certificate-data"])
-  client_key             = base64decode(yamldecode(module.aks.kube_config_raw).users[0].user["client-key-data"])
-}
+# # kubernetes
+# provider "kubernetes" {
+#   host                   = module.aks.cluster_endpoint
+#   cluster_ca_certificate = base64decode(module.aks.cluster_ca_certificate)
+#   client_certificate     = base64decode(yamldecode(module.aks.kube_config_raw).users[0].user["client-certificate-data"])
+#   client_key             = base64decode(yamldecode(module.aks.kube_config_raw).users[0].user["client-key-data"])
+# }
 
-# helm
-provider "helm" {
-  kubernetes = {
-    host                   = module.aks.cluster_endpoint
-    cluster_ca_certificate = base64decode(module.aks.cluster_ca_certificate)
-    client_certificate     = base64decode(yamldecode(module.aks.kube_config_raw).users[0].user["client-certificate-data"])
-    client_key             = base64decode(yamldecode(module.aks.kube_config_raw).users[0].user["client-key-data"])
-  }
-}
+# # helm
+# provider "helm" {
+#   kubernetes = {
+#     host                   = module.aks.cluster_endpoint
+#     cluster_ca_certificate = base64decode(module.aks.cluster_ca_certificate)
+#     client_certificate     = base64decode(yamldecode(module.aks.kube_config_raw).users[0].user["client-certificate-data"])
+#     client_key             = base64decode(yamldecode(module.aks.kube_config_raw).users[0].user["client-key-data"])
+#   }
+# }
