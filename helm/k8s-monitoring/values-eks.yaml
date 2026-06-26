@@ -1,0 +1,98 @@
+cluster:
+  name: eks
+destinations:
+  # metrics
+  grafana-cloud-metrics:
+    type: prometheus
+    urlFrom: sys.env("PROM_URL")
+    auth:
+      type: basic
+      usernameKey: prom_username
+      passwordKey: prom_password
+    secret:
+      create: false
+      name: grafana-cloud
+      namespace: monitoring
+  # log
+  grafana-cloud-logs:
+    type: loki
+    urlFrom: sys.env("LOGS_URL")
+    auth:
+      type: basic
+      usernameKey: logs_username
+      passwordKey: logs_password
+    secret:
+      create: false
+      name: grafana-cloud
+      namespace: monitoring
+clusterMetrics:
+  enabled: true
+  collector: alloy-metrics
+hostMetrics:
+  enabled: true
+  collector: alloy-metrics
+  linuxHosts:
+    enabled: true
+  windowsHosts:
+    enabled: true
+  energyMetrics:
+    enabled: true
+costMetrics:
+  enabled: true
+  collector: alloy-metrics
+clusterEvents:
+  enabled: true
+  collector: alloy-singleton
+podLogsViaLoki:
+  enabled: true
+  collector: alloy-logs
+collectors:
+  alloy-metrics:
+    presets:
+      - clustered
+      - statefulset
+  alloy-singleton:
+    presets:
+      - singleton
+  alloy-logs:
+    presets:
+      - filesystem-log-reader
+      - daemonset
+collectorCommon:
+  alloy:
+    alloy:
+      envFrom:
+        - secretRef:
+            name: grafana-cloud
+    remoteConfig:
+      enabled: true
+      urlFrom: sys.env("FLEET_URL")
+      auth:
+        type: basic
+        usernameKey: fleet_username
+        passwordKey: fleet_password
+      secret:
+        create: false
+        name: grafana-cloud
+        namespace: monitoring
+telemetryServices:
+  kube-state-metrics:
+    deploy: true
+  node-exporter:
+    deploy: true
+  windows-exporter:
+    deploy: true
+  opencost:
+    deploy: true
+    metricsSource: grafana-cloud-metrics
+    opencost:
+      exporter:
+        defaultClusterId: eks
+      prometheus:
+        existingSecretName: grafana-cloud
+        username_key: prom_username
+        password_key: prom_password
+        external:
+          url: https://prometheus-prod-32-prod-ca-east-0.grafana.net./api/prom
+  kepler:
+    deploy: true

@@ -76,7 +76,7 @@ Same single token is used for all three scopes — it's how Grafana Cloud's "Kub
 | 00  | Grafana Cloud stack                 | Stack created at grafana.com; "Kubernetes" integration page surfaces Prom / Loki / Fleet URLs + usernames + one access token |
 | 01  | Terraform vars + Secret             | `gc_*` vars set in `terraform.tfvars`; `terraform apply` creates `monitoring/grafana-cloud` Secret on EKS                    |
 | 02  | update api to enable metric and log | `demo-api` exposes Prometheus `/metrics`; access logs are JSON on stdout                                                     |
-| 03  | install alloy via helm              | create values/yaml; get api log and metric; send them to Grafana cloud                                                       |
+| 03  | install alloy via helm              | `helm install` of `grafana/k8s-monitoring` on EKS reaches Ready; `demo-api` `up`/`http_requests_total` and JSON logs appear in Grafana Cloud |
 | 04  | install alloy via helm + arogcd     | confirm in app-of-apps                                                                                                       |
 | 05  | Demo dashboard                      | Out-of-the-box "Kubernetes / Cluster overview" dashboard split by `cluster`; energy panels populated                         |
 
@@ -163,4 +163,60 @@ docker logs multicloud-demo-api
 
 docker stop multicloud-demo-api
 docker rm multicloud-demo-api
+```
+
+### Alloy via Helm (phase 03)
+
+
+```sh
+helm repo add grafana https://grafana.github.io/helm-charts
+helm repo update grafana
+
+helm upgrade --install grafana-k8s-monitoring grafana/k8s-monitoring --version 4.1.6 --namespace monitoring -f helm/k8s-monitoring/values-eks.yaml --rollback-on-failure --timeout 5m
+
+helm list -A
+# NAME                                    NAMESPACE       REVISION        UPDATED                                 STATUS          CHART                 APP VERSION
+# argocd                                  argocd          1               2026-06-26 16:33:01.2662609 -0400 EDT   deployed        argo-cd-9.7.0         v3.4.4
+# grafana-k8s-monitoring                  monitoring      2               2026-06-26 17:10:22.8234459 -0400 EDT   deployed        k8s-monitoring-4.1.6  4.1.6
+# grafana-k8s-monitoring-alloy-logs       monitoring      1               2026-06-26 21:02:20.416701352 +0000 UTC deployed        alloy-1.10.0          v1.17.0
+# grafana-k8s-monitoring-alloy-metrics    monitoring      1               2026-06-26 21:02:20.417036796 +0000 UTC deployed        alloy-1.10.0          v1.17.0
+# grafana-k8s-monitoring-alloy-singleton  monitoring      1               2026-06-26 21:02:20.910274373 +0000 UTC deployed        alloy-1.10.0          v1.17.0
+```
+
+Verify pods:
+
+```sh
+kubectl -n monitoring get pods
+
+kubectl -n monitoring get pod grafana-k8s-monitoring-alloy-metrics-0 -o jsonpath='{range .spec.containers[?(@.name=="alloy")].env[*]}{.name}{"\n"}{end}'
+# ALLOY_DEPLOY_MODE
+# HOSTNAME
+# K8S_NODE_NAME
+# NAMESPACE
+# POD_NAME
+# GCLOUD_RW_API_KEY
+
+kubectl -n monitoring logs -l app.kubernetes.io/name=alloy-metrics --tail=50 | grep -E "invalid token|unsupported|remote_write|error"
+# none
+```
+
+Verify in Grafana Cloud:
+
+```promql
+# Cluster heartbeat — should be 1
+up{cluster="eks"}
+
+# demo-api scrape via annotation autodiscovery
+http_requests_total{cluster="eks"}
+```
+
+```logql
+# demo-api JSON access logs
+{cluster="eks", namespace="demo-api", pod=~".*demo-api.*"} | json
+```
+
+Uninstall (rollback):
+
+```sh
+helm uninstall grafana-k8s-monitoring -n monitoring
 ```

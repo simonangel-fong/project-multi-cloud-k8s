@@ -58,8 +58,10 @@ kubectl get nodes
 ## ArgoCD: Multi-cloud
 
 ```sh
-argocd login localhost:8081 --username admin   --insecure
-argocd cluster add multi-cloud-k8s-dev --name aks-dev --label cloud=azure --label workload=demo-api -y
+kubectl -n argocd port-forward svc/argocd-server 8080:443
+
+kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath="{.data.password}" | base64 -d ; echo
+argocd login localhost:8080 --username admin --insecure
 
 argocd cluster list
 
