@@ -15,6 +15,10 @@ env:
   VERSION: "0.1.1"
   CLOUD_PROVIDER: "local"
 
+metrics:
+  enabled: true
+  path: /metrics
+
 probes:
   path: /healthz
   initialDelaySeconds: 3
