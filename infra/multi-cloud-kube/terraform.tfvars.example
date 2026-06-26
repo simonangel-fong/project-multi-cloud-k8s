@@ -1,3 +1,12 @@
 aws_region  = "aws_region"
 az_location = "az_location"
 env         = "env_name"
+
+# Grafana Cloud (Connections → Kubernetes → install integration)
+gc_prom_url       = "https://prometheus-prod-XX-prod-YY-ZZZZ-0.grafana.net./api/prom/push"
+gc_prom_username  = "0000000"
+gc_logs_url       = "https://logs-prod-XXX.grafana.net./loki/api/v1/push"
+gc_logs_username  = "0000000"
+gc_fleet_url      = "https://fleet-management-prod-XXX.grafana.net"
+gc_fleet_username = "0000000"
+gc_token          = "glc_xxx"

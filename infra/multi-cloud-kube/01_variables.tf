@@ -28,3 +28,35 @@ variable "aws_region" {
 variable "az_location" {
   type = string
 }
+
+# ##############################
+# Grafana Cloud
+# ##############################
+variable "gc_prom_url" {
+  type = string
+}
+
+variable "gc_prom_username" {
+  type = string
+}
+
+variable "gc_logs_url" {
+  type = string
+}
+
+variable "gc_logs_username" {
+  type = string
+}
+
+variable "gc_fleet_url" {
+  type = string
+}
+
+variable "gc_fleet_username" {
+  type = string
+}
+
+variable "gc_token" {
+  type      = string
+  sensitive = true
+}
