@@ -7,6 +7,7 @@ spec:
   goTemplate: true
   goTemplateOptions:
     - missingkey=error
+  # generator: select cluster with label
   generators:
     - clusters:
         selector:
@@ -22,10 +23,12 @@ spec:
     spec:
       project: default
       revisionHistoryLimit: 3
+      # source: manifests
       source:
         repoURL: https://github.com/simonangel-fong/k8s-multi-cloud.git
         targetRevision: master
         path: argocd/envoy-gateway-config
+      # destination: selected cluster server
       destination:
         server: '{{ .server }}'
         namespace: envoy-gateway-system

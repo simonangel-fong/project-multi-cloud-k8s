@@ -1,4 +1,25 @@
-# Argo CD: GitOps for k8s-multi-cloud
+# Documentation: GitOps with Argo CD
+
+[Back](../README.md)
+
+- [Documentation: GitOps with Argo CD](#documentation-gitops-with-argo-cd)
+  - [Installation](#installation)
+  - [Repo Layout](#repo-layout)
+  - [Sync waves](#sync-waves)
+  - [Goals](#goals)
+  - [Phases](#phases)
+  - [Development](#development)
+    - [Install - Local Docker Desktop](#install---local-docker-desktop)
+    - [App-of-apps](#app-of-apps)
+    - [Gateway](#gateway)
+    - [Multi-cluster ApplicationSet](#multi-cluster-applicationset)
+    - [EKS](#eks)
+      - [Test APP](#test-app)
+    - [AKS](#aks)
+      - [Test APP](#test-app-1)
+  - [Runbook](#runbook)
+
+---
 
 Install Argo CD and use the app-of-apps pattern to deploy Envoy Gateway and `demo-api` declaratively.
 
@@ -12,43 +33,28 @@ Install Argo CD and use the app-of-apps pattern to deploy Envoy Gateway and `dem
 
 ```
 argocd/
-  00-root.yaml          # root Application — points at app/
+  00-root.yaml                      # root Application - points at app/
   app/
-    01-envoy-gateway.yaml         # ApplicationSet — Envoy Gateway controller (shared platform)
-    02-envoy-gateway-config.yaml  # ApplicationSet — GatewayClass + Gateway (shared platform)
-    03-demo-api.yaml              # ApplicationSet — demo-api workload (clusters generator)
+    01-envoy-gateway.yaml           # ApplicationSet - Envoy Gateway controller
+    02-envoy-gateway-config.yaml    # ApplicationSet - GatewayClass + Gateway
+    03-grafana-k8s-monitoring.yaml  # ApplicationSet - Grafana Alloy
+    03-demo-api.yaml                # ApplicationSet - demo-api workload
   envoy-gateway-config/
-    gatewayclass.yaml
-    gateway.yaml
+    01-envoyproxy.yaml              # service proxy
+    02-gatewayclass.yaml            # envoy gatewayclass
+    03-gateway.yaml                 # envoy gateway
 ```
 
-> Cluster Secrets are Terraform-managed in [`infra/multi-cloud-kube/07_argocd.tf`](../infra/multi-cloud-kube/07_argocd.tf), not in git as ArgoCD Applications.
-
-## Projects
-
-Three AppProjects scope blast radius and align with change cadence:
-
-| Project           | Purpose                                            | Allowed namespaces        | Cluster-scoped resources |
-| ----------------- | -------------------------------------------------- | ------------------------- | ------------------------ |
-| `platform-system` | Controllers + CRDs (Envoy Gateway, future operators) | `*`                       | Allowed                  |
-| `platform-config` | Shared infra config (GatewayClass, Gateway)        | `envoy-gateway-system`    | Denied                   |
-| `tenant-demo`     | demo-api workload (one project per tenant team)    | `demo-api`, `demo-api-*`  | Denied                   |
-
-Rule of thumb for adding tenants: same team as an existing tenant → reuse the project; different team or audit-isolated env → new `tenant-<name>` project.
+> Cluster Secrets are Terraform-managed
 
 ## Sync waves
 
-Two-level model. Level 1 controls the order the root app creates the ApplicationSet CRs; Level 2 controls the order their generated child Applications sync into the target cluster.
-
-| Manifest                          | Level 1 (root → ApplicationSet) | Level 2 (template → child App) | Project           |
-| --------------------------------- | ------------------------------- | ------------------------------ | ----------------- |
-| `00-projects.yaml`                | `-1`                            | n/a                            | n/a               |
-| `01-envoy-gateway.yaml`           | `0`                             | `0` (controller + CRDs)        | `platform-system` |
-| `02-envoy-gateway-config.yaml`    | `0`                             | `1` (GatewayClass, Gateway)    | `platform-config` |
-| `03-demo-api.yaml`                | `0`                             | `2` (workload)                 | `tenant-demo`     |
-| Future tenant `04-app-2.yaml`     | `0`                             | `2`                            | `tenant-<team>`   |
-
-Why all tenants share Level 2 wave `2`: sync-wave encodes **dependencies**, not priority. Independent tenants sync in parallel — staggering them serializes bootstrap for no benefit.
+| Manifest                         | Sync                        |
+| -------------------------------- | --------------------------- |
+| `01-envoy-gateway.yaml`          | `0` (controller + CRDs)     |
+| `02-envoy-gateway-config.yaml`   | `1` (GatewayClass, Gateway) |
+| `03-grafana-k8s-monitoring.yaml` | `2` (Grafana Alloy)         |
+| `04-demo-api.yaml`               | `3` (workload)              |
 
 ## Goals
 
@@ -60,27 +66,19 @@ Why all tenants share Level 2 wave `2`: sync-wave encodes **dependencies**, not 
 
 ## Phases
 
-| #   | Goal                             | Done when (local Docker Desktop)                                                                                                                               |
-| --- | -------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| 00  | Install Argo CD                  | Helm install succeeds; port-forward reaches Argo CD UI; admin login works                                                                                      |
-| 01  | Root app-of-apps                 | `00-root.yaml` applied; UI + `argocd app list` show root Application Healthy/Synced                                                                            |
-| 02  | Envoy Gateway                    | Child Application syncs Envoy Gateway; `kubectl get gatewayclass` shows it Ready                                                                               |
-| 03  | demo-api                         | Child Application syncs demo-api chart; pods + svc + httproute Healthy; `curl -H "Host: cloud.arguswatcher.net" http://<gateway>/api/` returns expected JSON   |
-| 04  | Multi-cluster via ApplicationSet | AKS registered to the EKS-hosted Argo CD; `demo-api` migrated to an ApplicationSet (`clusters` generator) that fans out to both clusters with per-cloud values |
+| #   | Goal                             | Done when (local Docker Desktop)                                                    |
+| --- | -------------------------------- | ----------------------------------------------------------------------------------- |
+| 00  | Install Argo CD                  | Helm install succeeds; port-forward reaches Argo CD UI; admin login works           |
+| 01  | Root app-of-apps                 | `00-root.yaml` applied; UI + `argocd app list` show root Application Healthy/Synced |
+| 02  | Envoy Gateway                    | Child Application syncs Envoy Gateway; `kubectl get gatewayclass` shows it Ready    |
+| 03  | demo-api                         | Child Application syncs demo-api chart; `curl` returns expected JSON                |
+| 04  | Multi-cluster via ApplicationSet | AKS registered to the EKS-hosted Argo CD;                                           |
 
 ---
 
-## Out of Scope (this stage)
+## Development
 
-- Multi-cluster Argo CD (single-cluster only for now)
-- SSO / RBAC beyond default admin
-- Notifications, image updater
-
----
-
-## Note
-
-### Install - Docker Desktop
+### Install - Local Docker Desktop
 
 ```sh
 # install dock desktop
@@ -91,9 +89,8 @@ helm repo update
 # install into argocd namespace
 helm install argocd argo/argo-cd --namespace argocd --create-namespace
 
-# wait for pods to be ready (~1-2 min)
+# wait for pods to be ready
 kubectl get pods -n argocd -w
-# Ctrl-C once all show Running / 1/1
 
 # get initial admin password
 kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath="{.data.password}" | base64 -d ; echo
@@ -159,15 +156,13 @@ kubectl get httproute -n demo-api
 
 ---
 
----
-
 ### Multi-cluster ApplicationSet
 
 - `argocd/app/03-demo-api.yaml`:
   - an ApplicationSet with a `clusters` generator scoped by label `workload=demo-api`.
 - Per-cloud overrides live in `helm/multicloud-demo-api/values-<cloud>.yaml`, selected by the cluster Secret's `cloud` label.
 
-#### EKS
+### EKS
 
 ```sh
 argocd app sync clusters
@@ -182,7 +177,7 @@ curl -H "Host: cloud.arguswatcher.net" "http://${GATEWAY_ADDR}/api/"
 # {"app":"k8s-multi-cloud","cloud_provider":"aws","version":"0.1.0"}
 ```
 
-## Test APP
+#### Test APP
 
 ```sh
 # resolve gateway address
@@ -193,7 +188,7 @@ curl -H "Host: cloud.arguswatcher.net" "http://${GATEWAY_ADDR}/api/"
 # {"app":"k8s-multi-cloud","cloud_provider":"local","version":"0.1.0"}
 ```
 
-#### AKS
+### AKS
 
 ```sh
 # 1. Pull AKS credentials into kubeconfig
@@ -213,7 +208,7 @@ kubectl -n argocd label secret aks-prod cloud=azure workload=demo-api
 # ApplicationSet auto-creates demo-api-aks-prod; cloud_provider returns "azure".
 ```
 
-### Test APP
+#### Test APP
 
 ```sh
 GATEWAY_ADDR=$(kubectl get gateway eg -n envoy-gateway-system -o jsonpath='{.status.addresses[0].value}')
@@ -226,6 +221,8 @@ curl -H "Host: cloud.arguswatcher.net" "http://20.48.140.60/api/"
 ---
 
 ## Runbook
+
+- Common finalizer issue
 
 ```sh
 kubectl patch gatewayclass eg --type=json -p='[{"op":"remove","path":"/metadata/finalizers"}]'

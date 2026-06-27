@@ -1,18 +1,31 @@
-# Helm Chart: multicloud-demo-api
+# Documentation: Helm Chart
+
+[Back](../README.md)
+
+- [Documentation: Helm Chart](#documentation-helm-chart)
+  - [Design](#design)
+  - [Phases](#phases)
+  - [Development](#development)
+    - [App](#app)
+    - [Gateway API in EKS](#gateway-api-in-eks)
+
+---
 
 Helm chart to deploy `demo-api` on Kubernetes (local + EKS).
 
 - **Chart path:** `helm/multicloud-demo-api/`
-- **Image:** `simonangelfong/multicloud-demo-api:0.1.0`
+- **Image:** `simonangelfong/multicloud-demo-api:0.1.1`
 
-## Target Environments
+## Design
+
+- Target Environments
 
 | Env   | Cluster                   | Purpose                       |
 | ----- | ------------------------- | ----------------------------- |
 | local | Docker Desktop Kubernetes | Chart authoring & smoke tests |
 | aws   | EKS                       | Full scaling + routing tests  |
 
-## App Endpoints (recap)
+- App Endpoints (recap)
 
 | Method | Path       | Purpose                              |
 | ------ | ---------- | ------------------------------------ |
@@ -20,7 +33,7 @@ Helm chart to deploy `demo-api` on Kubernetes (local + EKS).
 | GET    | `/env/`    | `VERSION`, `CLOUD_PROVIDER` from env |
 | GET    | `/healthz` | `ok` — used for probes               |
 
-## Kubernetes Resources
+- Kubernetes Resources
 
 | Resource   | Key settings                                                                                    |
 | ---------- | ----------------------------------------------------------------------------------------------- |
@@ -35,33 +48,24 @@ Env vars `VERSION` and `CLOUD_PROVIDER` set via `values.yaml`.
 
 ## Phases
 
-| #   | Goal            | Done when (local Docker Desktop)                                                                                                           |
-| --- | --------------- | ------------------------------------------------------------------------------------------------------------------------------------------ |
-| 00  | Init chart      | `helm create` scaffold; templates stripped to a single nginx Deployment; `helm install` succeeds; port-forward shows nginx default page    |
-| 01  | Deployment      | Swap to `demo-api` image; 2 pods Running with env vars set; port-forward returns expected JSON on `/api/`, `/env/`, and `ok` on `/healthz` |
-| 02  | Service         | `ClusterIP` Service routes to pods; port-forward via Service returns same responses                                                        |
-| 03  | HPA + HTTPRoute | HPA and HTTPRoute objects created and `kubectl get` shows them healthy (no scaling/routing tests here — deferred to EKS)                   |
+| #   | Goal            | Done when (local Docker Desktop)                                          |
+| --- | --------------- | ------------------------------------------------------------------------- |
+| 00  | Init chart      | `helm create` scaffold; `helm install` succeeds; single nginx Deployment; |
+| 01  | Deployment      | Swap to `demo-api` image; 2 pods with env vars set; `curl` api paths      |
+| 02  | Service         | `ClusterIP` Service routes to pods;                                       |
+| 03  | HPA + HTTPRoute | HPA and HTTPRoute objects;                                                |
 
 ---
 
-## Out of Scope (this stage)
+## Development
 
-- Scaling validation under load — tested on EKS
-- HTTPRoute end-to-end routing — tested on EKS (needs Gateway controller + DNS)
-- TLS, auth, network policies
-
----
-
-## Note
-
-- App
+### App
 
 ```sh
 cd helm
 helm lint helm/multicloud-demo-api
 # chart(s) linted, 0 chart(s) failed
 helm template test helm/multicloud-demo-api
-
 
 # switch context (if not already)
 kubectl config use-context docker-desktop
@@ -101,11 +105,11 @@ curl http://localhost:8080/healthz
 
 # cleanup when done
 helm uninstall demo
-
 ```
 
 ---
-## Gateway API
+
+### Gateway API in EKS
 
 ```sh
 kubectl apply -f https://github.com/kubernetes-sigs/gateway-api/releases/download/v1.2.0/standard-install.yaml

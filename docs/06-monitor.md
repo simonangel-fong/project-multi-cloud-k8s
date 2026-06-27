@@ -1,14 +1,25 @@
-# Monitoring: Grafana Cloud for k8s-multi-cloud
+# Documentation: Monitor with Alloy and Grafana Cloud
+
+[Back](../README.md)
+
+- [Documentation: Monitor with Alloy and Grafana Cloud](#documentation-monitor-with-alloy-and-grafana-cloud)
+  - [Grafana Cloud](#grafana-cloud)
+  - [Goals](#goals)
+  - [Phases](#phases)
+  - [Development](#development)
+    - [Grafana Cloud (phase 00)](#grafana-cloud-phase-00)
+    - [Terraform Secret (phase 01)](#terraform-secret-phase-01)
+    - [demo-api: metrics + logs](#demo-api-metrics--logs)
+    - [Alloy via Helm - EKS](#alloy-via-helm---eks)
+    - [Alloy via Helm - AKS](#alloy-via-helm---aks)
+
+---
+
+## Grafana Cloud
 
 Ship metrics, logs, events, and energy data from EKS and AKS to a single Grafana Cloud stack via the `grafana/k8s-monitoring` Helm chart (Alloy-based, multi-collector).
 
-## Installation
-
-| Env | Method                                                                                                                           |
-| --- | -------------------------------------------------------------------------------------------------------------------------------- |
-| dev | Grafana Cloud free stack; `k8s-monitoring` chart installed per cluster via ArgoCD; Grafana Cloud Secret provisioned by Terraform |
-
-## Data flow
+- Data flow
 
 ```txt
 demo-api pod  ──/metrics───┐
@@ -25,7 +36,7 @@ container stdout/stderr  ──┘                                              
 | energy                | Kepler                          | `alloy-metrics`             | Prometheus               |
 | remote-config / fleet | Alloy fleet management          | all collectors              | Grafana Cloud Fleet Mgmt |
 
-## Repo layout
+- Repo layout
 
 ```
 infra/multi-cloud-kube/
@@ -37,7 +48,7 @@ argocd/app/
 
 > Grafana Cloud creds live in a single `grafana-cloud` Secret in the `monitoring` namespace per cluster, created by Terraform. The chart references it via `destinations[].secret.{name,namespace}` and `auth.usernameKey/passwordKey` — nothing sensitive lives in Git.
 
-## Secret schema
+- Secret schema
 
 `monitoring/grafana-cloud` (Opaque):
 
@@ -53,13 +64,6 @@ argocd/app/
 | `fleet_username` | `gc_fleet_username` | `collectorCommon.alloy.remoteConfig.auth.usernameKey`  |
 | `fleet_password` | `gc_token`          | `collectorCommon.alloy.remoteConfig.auth.passwordKey`  |
 
-Two key conventions in one Secret:
-
-- **UPPER_CASE** keys mount as env vars via `collectorCommon.alloy.envFrom: [{secretRef: {name: grafana-cloud}}]` and resolve through `urlFrom: sys.env("...")` — keeps URLs out of Git.
-- **lower_case** keys feed the chart's `auth.usernameKey` / `auth.passwordKey` lookup.
-
-Same single token is used for all three scopes — it's how Grafana Cloud's "Kubernetes Integration" install flow issues it.
-
 ## Goals
 
 - One Grafana Cloud stack, both clusters reporting in parallel
@@ -71,37 +75,26 @@ Same single token is used for all three scopes — it's how Grafana Cloud's "Kub
 
 ## Phases
 
-| #   | Goal                                | Done when                                                                                                                                    |
-| --- | ----------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------- |
-| 00  | Grafana Cloud stack                 | Stack created at grafana.com; "Kubernetes" integration page surfaces Prom / Loki / Fleet URLs + usernames + one access token                 |
-| 01  | Terraform vars + Secret             | `gc_*` vars set in `terraform.tfvars`; `terraform apply` creates `monitoring/grafana-cloud` Secret on EKS                                    |
-| 02  | update api to enable metric and log | `demo-api` exposes Prometheus `/metrics`; access logs are JSON on stdout                                                                     |
-| 03  | install alloy via helm              | `helm install` of `grafana/k8s-monitoring` on EKS reaches Ready; `demo-api` `up`/`http_requests_total` and JSON logs appear in Grafana Cloud |
-| 04  | install alloy via helm + arogcd     | confirm in app-of-apps                                                                                                                       |
-| 05  | Demo dashboard                      | Out-of-the-box "Kubernetes / Cluster overview" dashboard split by `cluster`; energy panels populated                                         |
+| #   | Goal                                | Done when                                                                                       |
+| --- | ----------------------------------- | ----------------------------------------------------------------------------------------------- |
+| 00  | Grafana Cloud stack                 | "Kubernetes" integration page generates Prom / Loki / Fleet URLs + usernames + one access token |
+| 01  | Terraform vars + Secret             | `terraform.tfvars`; creates `monitoring/grafana-cloud` Secret on EKS                            |
+| 02  | update api to enable metric and log | `demo-api` exposes Prometheus `/metrics`; access logs are JSON on stdout                        |
+| 03  | install alloy via helm              | `helm install` on EKS reaches Ready; metrics ans logs appear in Grafana Cloud                   |
+| 04  | install alloy via helm + arogcd     | confirm in app-of-apps                                                                          |
 
 ---
 
-## Out of Scope (this stage)
-
-- Self-hosted Prometheus / Loki / Tempo
-- Application-level RED metrics + traces from `demo-api` (separate chart wiring)
-- Alerts, SLOs, on-call routing
-- Secrets via External Secrets Operator (Terraform-managed for now)
-- mTLS / private link to Grafana Cloud
-
----
-
-## Note
+## Development
 
 ### Grafana Cloud (phase 00)
 
-1. Sign up → create stack `multi-cloud-k8s-dev`.
-2. Connections → **Kubernetes** → "Install integration" → copy the generated values block. Capture:
-   - Prometheus remote-write URL + username (numeric instance id)
-   - Loki push URL + username
-   - Fleet management URL + username
-   - One access token (`glc_...`) — used for all three
+Connections → **Kubernetes** → "Install integration" → copy the generated values block. Capture:
+
+- Prometheus remote-write URL + username (numeric instance id)
+- Loki push URL + username
+- Fleet management URL + username
+- One access token (`glc_...`) — used for all three
 
 ### Terraform Secret (phase 01)
 
@@ -230,4 +223,5 @@ helm repo update grafana
 
 helm upgrade --install grafana-k8s-monitoring grafana/k8s-monitoring --version 4.1.6 --namespace monitoring -f helm/k8s-monitoring/values-az.yaml --rollback-on-failure --timeout 5m
 
+helm uninstall grafana-k8s-monitoring -n monitoring
 ```

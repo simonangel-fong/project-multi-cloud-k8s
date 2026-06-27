@@ -1,4 +1,4 @@
-# main.tf
+# main.tf: azure
 
 # ##############################
 # Resource Group

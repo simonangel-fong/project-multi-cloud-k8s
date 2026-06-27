@@ -1,15 +1,15 @@
-## Provision Infra
+# Documentation: Infrastructure with Terraform
 
-```sh
-terraform -chdir=infra/multi-cloud-kube init -backend-config=backend.hcl -reconfigure
-terraform -chdir=infra/multi-cloud-kube fmt && terraform -chdir=infra/multi-cloud-kube validate
-terraform -chdir=infra/multi-cloud-kube plan
-terraform -chdir=infra/multi-cloud-kube apply -auto-approve
+[Back](../README.md)
 
-terraform -chdir=infra/multi-cloud-kube destroy -auto-approve
-
-terraform -chdir=infra/multi-cloud-kube output kubeconfig_eks
-```
+- [Documentation: Infrastructure with Terraform](#documentation-infrastructure-with-terraform)
+  - [Networking - Design](#networking---design)
+    - [VPC](#vpc)
+    - [VNet](#vnet)
+  - [Development](#development)
+    - [Terraform](#terraform)
+    - [Connect Cluster](#connect-cluster)
+    - [ArgoCD](#argocd)
 
 ---
 
@@ -41,7 +41,24 @@ terraform -chdir=infra/multi-cloud-kube output kubeconfig_eks
 
 ---
 
-## Cluster
+## Development
+
+### Terraform
+
+```sh
+terraform -chdir=infra/multi-cloud-kube init -backend-config=backend.hcl -reconfigure
+terraform -chdir=infra/multi-cloud-kube fmt && terraform -chdir=infra/multi-cloud-kube validate
+terraform -chdir=infra/multi-cloud-kube plan
+terraform -chdir=infra/multi-cloud-kube apply -auto-approve
+
+terraform -chdir=infra/multi-cloud-kube destroy -auto-approve
+
+terraform -chdir=infra/multi-cloud-kube output kubeconfig_eks
+```
+
+---
+
+### Connect Cluster
 
 ```sh
 # eks kubeconfig
@@ -55,7 +72,7 @@ kubectl get nodes
 
 ---
 
-## ArgoCD: Multi-cloud
+### ArgoCD
 
 ```sh
 kubectl -n argocd port-forward svc/argocd-server 8080:443

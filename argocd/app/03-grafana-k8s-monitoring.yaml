@@ -7,6 +7,7 @@ spec:
   goTemplate: true
   goTemplateOptions:
     - missingkey=error
+  # generator: select cluster with label
   generators:
     - clusters:
         selector:
@@ -16,13 +17,17 @@ spec:
     metadata:
       name: '{{ .name }}-04-grafana-k8s-monitoring'
       annotations:
-        argocd.argoproj.io/sync-wave: "3"
+        argocd.argoproj.io/sync-wave: "2"
       finalizers:
         - resources-finalizer.argoproj.io/finalizer
     spec:
       project: default
       revisionHistoryLimit: 3
+      # source: helm + values
       sources:
+        - repoURL: https://github.com/simonangel-fong/k8s-multi-cloud.git
+          targetRevision: master
+          ref: values
         - repoURL: https://grafana.github.io/helm-charts
           chart: k8s-monitoring
           targetRevision: 4.1.6
@@ -30,9 +35,7 @@ spec:
             releaseName: grafana-k8s-monitoring
             valueFiles:
               - $values/helm/k8s-monitoring/values-{{ index .metadata.labels "cloud" }}.yaml
-        - repoURL: https://github.com/simonangel-fong/k8s-multi-cloud.git
-          targetRevision: master
-          ref: values
+      # destination: selected cluster server
       destination:
         server: '{{ .server }}'
         namespace: monitoring

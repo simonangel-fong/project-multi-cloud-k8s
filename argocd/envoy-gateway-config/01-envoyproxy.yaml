@@ -9,4 +9,4 @@ spec:
     kubernetes:
       envoyService:
         annotations:
-          service.beta.kubernetes.io/aws-load-balancer-additional-resource-tags: "Name=multi-cloud-k8s-dev,Project=multi-cloud-k8s,Environment=dev,ManagedBy=argocd"
+          service.beta.kubernetes.io/aws-load-balancer-additional-resource-tags: "Project=multi-cloud-k8s,Environment=dev,ManagedBy=argocd"

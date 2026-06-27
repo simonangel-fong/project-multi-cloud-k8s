@@ -1,8 +1,9 @@
 # monitoring.tf
 
 # ##############################
-# Monitoring: Grafana Cloud Secret (EKS)
+# Monitoring: EKS
 # ##############################
+# namespace
 resource "kubernetes_namespace" "monitoring_eks" {
   provider = kubernetes.eks
   metadata {
@@ -12,6 +13,7 @@ resource "kubernetes_namespace" "monitoring_eks" {
   depends_on = [module.eks_node_group_default]
 }
 
+# Grafana Cloud Secret
 resource "kubernetes_secret" "grafana_cloud_eks" {
   provider = kubernetes.eks
   metadata {
@@ -34,8 +36,9 @@ resource "kubernetes_secret" "grafana_cloud_eks" {
 }
 
 # ##############################
-# Monitoring: Grafana Cloud Secret (AKS)
+# Monitoring: AKS
 # ##############################
+# namespace
 resource "kubernetes_namespace" "monitoring_aks" {
   provider = kubernetes.aks
   metadata {
@@ -45,6 +48,7 @@ resource "kubernetes_namespace" "monitoring_aks" {
   depends_on = [module.aks]
 }
 
+# Grafana Cloud Secret
 resource "kubernetes_secret" "grafana_cloud_aks" {
   provider = kubernetes.aks
   metadata {

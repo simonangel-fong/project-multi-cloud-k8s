@@ -1,4 +1,7 @@
+# docker-compose.yaml
+
 services:
+  # aws
   aws:
     build: .
     environment:
@@ -7,6 +10,7 @@ services:
     ports:
       - "8081:8080"
 
+  # azure
   azure:
     build: .
     environment:

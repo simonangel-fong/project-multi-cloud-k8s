@@ -1,3 +1,4 @@
+# values.yaml: default 
 replicaCount: 2
 
 image:

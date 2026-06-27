@@ -1,4 +1,4 @@
-# argocd_aks.tf
+# argocd.tf: aks
 
 # ##############################
 # Argo CD: SA + binding

@@ -7,6 +7,7 @@ spec:
   goTemplate: true
   goTemplateOptions:
     - missingkey=error
+  # generator: select cluster with label
   generators:
     - clusters:
         selector:
@@ -16,12 +17,13 @@ spec:
     metadata:
       name: '{{ .name }}-03-demo-api'
       annotations:
-        argocd.argoproj.io/sync-wave: "2"
+        argocd.argoproj.io/sync-wave: "3"
       finalizers:
         - resources-finalizer.argoproj.io/finalizer
     spec:
       project: default
       revisionHistoryLimit: 3
+      # source: helm templates
       source:
         repoURL: https://github.com/simonangel-fong/k8s-multi-cloud.git
         targetRevision: master
@@ -29,6 +31,7 @@ spec:
         helm:
           valueFiles:
             - 'values-{{ index .metadata.labels "cloud" }}.yaml'
+      # destination: selected cluster server
       destination:
         server: '{{ .server }}'
         namespace: demo-api

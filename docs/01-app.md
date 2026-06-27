@@ -1,4 +1,19 @@
-# App: demo-api
+# Documentation: RESTful API Application
+
+[Back](../README.md)
+
+- [Documentation: RESTful API Application](#documentation-restful-api-application)
+  - [Endpoints](#endpoints)
+  - [Env Vars](#env-vars)
+  - [Packaging](#packaging)
+  - [File Structure](#file-structure)
+  - [Phases](#phases)
+  - [Development](#development)
+    - [API](#api)
+  - [Docker Image](#docker-image)
+  - [Docker push](#docker-push)
+
+---
 
 A minimal RESTful API for validating multi-cloud Kubernetes deployments.
 
@@ -29,43 +44,40 @@ app/
   demo-api/          # Go source
   Dockerfile
   docker-compose.yaml
-  README.md
 ```
 
 ---
 
 ## Phases
 
-| #   | Goal       | Done when                                                                                                                       |
-| --- | ---------- | ------------------------------------------------------------------------------------------------------------------------------- |
-| 00  | Init       | Go project scaffolded at `app/demo-api/`; hello-world responds on `:8080` locally                                               |
-| 01  | `/env/`    | Returns `VERSION` and `CLOUD_PROVIDER` from env; verified locally                                                               |
-| 02  | `/api/`    | Returns app/version/cloud JSON; verified locally                                                                                |
-| 03  | `/healthz` | Returns `ok`; verified locally                                                                                                  |
-| 04  | Dockerfile | Builds multi-stage image; `docker compose` run swaps `VERSION` (`0.1.0`/`1.0.0`) and `CLOUD_PROVIDER` (`aws`/`azure`) correctly |
+| #   | Goal       | Done when                                                                         |
+| --- | ---------- | --------------------------------------------------------------------------------- |
+| 00  | Init       | Go project scaffolded at `app/demo-api/`; hello-world responds on `:8080` locally |
+| 01  | `/env/`    | Returns `VERSION` and `CLOUD_PROVIDER` from env; verified locally                 |
+| 02  | `/api/`    | Returns app/version/cloud JSON; verified locally                                  |
+| 03  | `/healthz` | Returns `ok`; verified locally                                                    |
+| 04  | Dockerfile | Builds multi-stage image; `docker compose` run                                    |
 
 ---
 
-## Out of Scope (this stage)
-
-- Unit tests
-- Security scanning
-- Production hardening — goal is _make it work_, not _make it right_
-
----
-
-## Note
+## Development
 
 ### API
 
 ```sh
 cd app/demo-api
 
+# initialize a new Go module
 go mod init demo-api
+# add dependencies
 go get github.com/gin-gonic/gin
+# clean and synchronize dependencies.
 go mod tidy
 
+# local run
 $env:VERSION="0.1.0"; $env:CLOUD_PROVIDER="AWS"; go run .
+
+# test
 curl http://localhost:8080/env/
 # {"CLOUD_PROVIDER":"AWS","VERSION":"0.1.0"}
 

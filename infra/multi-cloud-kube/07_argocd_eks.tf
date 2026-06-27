@@ -1,8 +1,8 @@
-# argocd_eks.tf
+# argocd.tf: eks
 
-# # ##############################
-# # ArgoCD: Cluster Secret
-# # ##############################
+# ##############################
+# ArgoCD: Cluster Secret
+# ##############################
 # EKS cluster
 resource "kubernetes_secret" "eks_cluster" {
   provider = kubernetes.eks
